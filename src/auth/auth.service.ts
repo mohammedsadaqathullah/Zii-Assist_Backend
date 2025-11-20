@@ -12,15 +12,23 @@ export class AuthService {
     ) { }
 
     async register(dto: RegisterDto) {
+        console.log('Register: Starting registration for', dto.email);
         const hashedPassword = await bcrypt.hash(dto.password, 10);
-        const user = await this.prisma.user.create({
-            data: {
-                email: dto.email,
-                password: hashedPassword,
-                name: dto.name,
-            },
-        });
-        return this.signToken(user.id, user.email);
+        console.log('Register: Password hashed');
+        try {
+            const user = await this.prisma.user.create({
+                data: {
+                    email: dto.email,
+                    password: hashedPassword,
+                    name: dto.name,
+                },
+            });
+            console.log('Register: User created in DB', user.id);
+            return this.signToken(user.id, user.email);
+        } catch (error) {
+            console.error('Register: Error creating user', error);
+            throw error;
+        }
     }
 
     async login(dto: LoginDto) {
