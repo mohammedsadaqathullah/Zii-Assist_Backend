@@ -63,6 +63,72 @@ export class ReportsService {
         return this.aggregateTransactions(transactions);
     }
 
+    async getCustomReport(userId: number, startDate: string, endDate: string) {
+        const start = new Date(startDate);
+        start.setHours(0, 0, 0, 0);
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+
+        const transactions = await this.prisma.transaction.findMany({
+            where: {
+                userId,
+                date: {
+                    gte: start,
+                    lte: end,
+                },
+            },
+            include: { category: true },
+        });
+
+        return this.aggregateTransactions(transactions);
+    }
+
+    async generateReportPdf(userId: number, startDate: string, endDate: string): Promise<Buffer> {
+        const report = await this.getCustomReport(userId, startDate, endDate);
+        const PDFDocument = require('pdfkit');
+
+        return new Promise((resolve) => {
+            const doc = new PDFDocument();
+            const buffers: any[] = [];
+
+            doc.on('data', buffers.push.bind(buffers));
+            doc.on('end', () => {
+                const pdfData = Buffer.concat(buffers);
+                resolve(pdfData);
+            });
+
+            // Title
+            doc.fontSize(25).text('Financial Report', { align: 'center' });
+            doc.moveDown();
+            doc.fontSize(12).text(`Period: ${startDate} to ${endDate}`, { align: 'center' });
+            doc.moveDown();
+
+            // Summary
+            doc.fontSize(16).text('Summary');
+            doc.fontSize(12).text(`Total Income: $${report.totalIncome}`);
+            doc.text(`Total Expense: $${report.totalExpense}`);
+            doc.text(`Balance: $${report.balance}`);
+            doc.moveDown();
+
+            // Category Breakdown
+            doc.fontSize(16).text('Category Breakdown');
+            Object.entries(report.categoryBreakdown).forEach(([category, data]: [string, any]) => {
+                doc.fontSize(12).text(`${category}: $${data.total} (${data.count} transactions)`);
+            });
+            doc.moveDown();
+
+            // Transactions
+            doc.fontSize(16).text('Transactions');
+            report.transactions.forEach((t: any) => {
+                const date = new Date(t.date).toLocaleDateString();
+                const amount = t.type === 'INCOME' ? `+$${t.amount}` : `-$${t.amount}`;
+                doc.fontSize(10).text(`${date} - ${t.category.name} - ${t.note || ''} : ${amount}`);
+            });
+
+            doc.end();
+        });
+    }
+
     private aggregateTransactions(transactions: any[]) {
         const totalIncome = transactions
             .filter((t) => t.type === 'INCOME')

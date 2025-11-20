@@ -1,4 +1,5 @@
-import { Controller, Get, Query, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { Controller, Get, Query, ParseIntPipe, UseGuards, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthGuard } from '@nestjs/passport';
 import { ReportsService } from './reports.service';
 import { GetUser } from '../auth/decorator';
@@ -31,5 +32,32 @@ export class ReportsController {
         @Query('year', ParseIntPipe) year: number,
     ) {
         return this.reportsService.getMonthlyReport(userId, month, year);
+    }
+
+    @Get('custom')
+    getCustomReport(
+        @GetUser('id') userId: number,
+        @Query('startDate') startDate: string,
+        @Query('endDate') endDate: string,
+    ) {
+        return this.reportsService.getCustomReport(userId, startDate, endDate);
+    }
+
+    @Get('pdf')
+    async getReportPdf(
+        @GetUser('id') userId: number,
+        @Query('startDate') startDate: string,
+        @Query('endDate') endDate: string,
+        @Res() res: Response,
+    ) {
+        const buffer = await this.reportsService.generateReportPdf(userId, startDate, endDate);
+
+        res.set({
+            'Content-Type': 'application/pdf',
+            'Content-Disposition': `attachment; filename=report-${startDate}-${endDate}.pdf`,
+            'Content-Length': buffer.length,
+        });
+
+        res.end(buffer);
     }
 }
