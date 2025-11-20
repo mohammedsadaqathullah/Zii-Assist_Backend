@@ -65,9 +65,15 @@ export class ReportsService {
 
     async getCustomReport(userId: number, startDate: string, endDate: string) {
         const start = new Date(startDate);
-        start.setHours(0, 0, 0, 0);
         const end = new Date(endDate);
-        end.setHours(23, 59, 59, 999);
+
+        // Only set start/end of day if the input is just a date (YYYY-MM-DD)
+        if (!startDate.includes('T')) {
+            start.setHours(0, 0, 0, 0);
+        }
+        if (!endDate.includes('T')) {
+            end.setHours(23, 59, 59, 999);
+        }
 
         const transactions = await this.prisma.transaction.findMany({
             where: {
