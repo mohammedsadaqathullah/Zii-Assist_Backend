@@ -5,22 +5,11 @@ import { PrismaService } from '../prisma/prisma.service';
 export class ReportsService {
     constructor(private prisma: PrismaService) { }
 
-    async getDailyReport(userId: number, date: string, timezoneOffset?: number) {
+    async getDailyReport(userId: number, date: string) {
         const startDate = new Date(date);
+        startDate.setHours(0, 0, 0, 0);
         const endDate = new Date(date);
-
-        if (timezoneOffset !== undefined) {
-            // Adjust for user's timezone
-            // UTC = Local + offset
-            startDate.setUTCHours(0, 0, 0, 0);
-            startDate.setMinutes(startDate.getMinutes() + timezoneOffset);
-
-            endDate.setUTCHours(23, 59, 59, 999);
-            endDate.setMinutes(endDate.getMinutes() + timezoneOffset);
-        } else {
-            startDate.setHours(0, 0, 0, 0);
-            endDate.setHours(23, 59, 59, 999);
-        }
+        endDate.setHours(23, 59, 59, 999);
 
         const transactions = await this.prisma.transaction.findMany({
             where: {

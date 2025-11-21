@@ -1,7 +1,8 @@
-import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, ParseIntPipe, Patch, Post, Query, UseGuards } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TransactionsService } from './transactions.service';
 import { CreateTransactionDto, EditTransactionDto } from './dto/transaction.dto';
+import { PaginationDto } from './dto/pagination.dto';
 import { GetUser } from '../auth/decorator/get-user.decorator';
 import { User } from '@prisma/client';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagger';
@@ -13,11 +14,14 @@ import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth } from '@nestjs/swagg
 export class TransactionsController {
     constructor(private transactionsService: TransactionsService) { }
 
-    @ApiOperation({ summary: 'Get all transactions for the current user' })
-    @ApiResponse({ status: 200, description: 'Return all transactions' })
+    @ApiOperation({ summary: 'Get all transactions for the current user with pagination' })
+    @ApiResponse({ status: 200, description: 'Return paginated transactions' })
     @Get()
-    getTransactions(@GetUser('id') userId: number) {
-        return this.transactionsService.getTransactions(userId);
+    getTransactions(
+        @GetUser('id') userId: number,
+        @Query() paginationDto: PaginationDto,
+    ) {
+        return this.transactionsService.getTransactions(userId, paginationDto);
     }
 
     @ApiOperation({ summary: 'Get a transaction by ID' })
