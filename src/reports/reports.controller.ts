@@ -13,8 +13,9 @@ export class ReportsController {
     getDailyReport(
         @GetUser('id') userId: number,
         @Query('date') date: string,
+        @Query('timezone') timezone?: string,
     ) {
-        return this.reportsService.getDailyReport(userId, date);
+        return this.reportsService.getDailyReport(userId, date, timezone ? parseInt(timezone) : undefined);
     }
 
     @Get('weekly')
