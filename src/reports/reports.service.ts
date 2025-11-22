@@ -156,15 +156,20 @@ export class ReportsService {
             doc.rect(30, summaryTop, 550, 60).fill('#f9f9f9').stroke();
             doc.fillColor('black'); // Reset fill color after rect
 
-            doc.fontSize(10).text('Total Income', 50, summaryTop + 10);
-            doc.fontSize(14).fillColor('green').text(`$${report.totalIncome.toFixed(2)}`, 50, summaryTop + 25);
+            const summaryColWidth = 550 / 3;
 
-            doc.fontSize(10).fillColor('black').text('Total Expense', 200, summaryTop + 10);
-            doc.fontSize(14).fillColor('red').text(`$${report.totalExpense.toFixed(2)}`, 200, summaryTop + 25);
+            // Total Income
+            doc.fontSize(10).text('Total Income', 30, summaryTop + 10, { width: summaryColWidth, align: 'center' });
+            doc.fontSize(14).fillColor('green').text(`$${report.totalIncome.toFixed(2)}`, 30, summaryTop + 25, { width: summaryColWidth, align: 'center' });
 
-            doc.fontSize(10).fillColor('black').text('Net Balance', 350, summaryTop + 10);
+            // Total Expense
+            doc.fontSize(10).fillColor('black').text('Total Expense', 30 + summaryColWidth, summaryTop + 10, { width: summaryColWidth, align: 'center' });
+            doc.fontSize(14).fillColor('red').text(`$${report.totalExpense.toFixed(2)}`, 30 + summaryColWidth, summaryTop + 25, { width: summaryColWidth, align: 'center' });
+
+            // Net Balance
+            doc.fontSize(10).fillColor('black').text('Net Balance', 30 + (summaryColWidth * 2), summaryTop + 10, { width: summaryColWidth, align: 'center' });
             const balanceColor = report.balance >= 0 ? 'green' : 'red';
-            doc.fontSize(14).fillColor(balanceColor).text(`$${report.balance.toFixed(2)}`, 350, summaryTop + 25);
+            doc.fontSize(14).fillColor(balanceColor).text(`$${report.balance.toFixed(2)}`, 30 + (summaryColWidth * 2), summaryTop + 25, { width: summaryColWidth, align: 'center' });
 
             doc.fillColor('black');
             doc.moveDown(4);
