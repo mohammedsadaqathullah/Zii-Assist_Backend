@@ -49,9 +49,10 @@ export class ReportsController {
         @GetUser('id') userId: number,
         @Query('startDate') startDate: string,
         @Query('endDate') endDate: string,
+        @Query('timezone') timezone: string,
         @Res() res: Response,
     ) {
-        const buffer = await this.reportsService.generateReportPdf(userId, startDate, endDate);
+        const buffer = await this.reportsService.generateReportPdf(userId, startDate, endDate, timezone ? parseInt(timezone) : 0);
 
         res.set({
             'Content-Type': 'application/pdf',

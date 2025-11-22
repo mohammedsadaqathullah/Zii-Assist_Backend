@@ -94,7 +94,7 @@ export class ReportsService {
         return this.aggregateTransactions(transactions);
     }
 
-    async generateReportPdf(userId: number, startDate: string, endDate: string): Promise<Buffer> {
+    async generateReportPdf(userId: number, startDate: string, endDate: string, timezoneOffset: number = 0): Promise<Buffer> {
         const report = await this.getCustomReport(userId, startDate, endDate);
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
         const PDFDocument = require('pdfkit');
@@ -112,9 +112,17 @@ export class ReportsService {
                 resolve(pdfData);
             });
 
-            // Helper to format date
+            // Helper to format date with timezone adjustment
             const formatDate = (dateStr: string) => {
                 const d = new Date(dateStr);
+                // Subtract offset because JS getTimezoneOffset returns positive for behind UTC (e.g. UTC-5 is 300)
+                // But usually we receive offset in minutes. 
+                // If we receive standard JS offset (minutes to add to local to get UTC), we should subtract it to get local from UTC?
+                // Wait, usually from frontend we send `new Date().getTimezoneOffset()`.
+                // If I am in UTC+5:30, offset is -330.
+                // To get local time from UTC date object, I need to add 330 minutes.
+                // So if offset is -330, I should SUBTRACT it (- -330 = +330).
+                d.setMinutes(d.getMinutes() - timezoneOffset);
                 return d.toLocaleDateString('en-GB', {
                     day: '2-digit',
                     month: 'short',
@@ -122,9 +130,10 @@ export class ReportsService {
                 });
             };
 
-            // Helper to format time
+            // Helper to format time with timezone adjustment
             const formatTime = (dateStr: string) => {
                 const d = new Date(dateStr);
+                d.setMinutes(d.getMinutes() - timezoneOffset);
                 return d.toLocaleTimeString('en-US', {
                     hour: '2-digit',
                     minute: '2-digit',
