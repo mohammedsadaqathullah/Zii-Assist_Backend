@@ -8,13 +8,14 @@ export class ReportsService {
     async getDailyReport(userId: number, date: string, timezone?: number) {
         const startDate = new Date(date);
         const endDate = new Date(date);
+        startDate.setHours(0, 0, 0, 0);
+        endDate.setHours(23, 59, 59, 999);
+
         // Apply timezone offset if provided (minutes offset from UTC)
         if (timezone !== undefined) {
             startDate.setMinutes(startDate.getMinutes() + timezone);
             endDate.setMinutes(endDate.getMinutes() + timezone);
         }
-        startDate.setHours(0, 0, 0, 0);
-        endDate.setHours(23, 59, 59, 999);
 
         const transactions = await this.prisma.transaction.findMany({
             where: {
