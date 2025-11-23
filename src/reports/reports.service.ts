@@ -446,6 +446,9 @@ export class ReportsService {
                 .text(new Date().toLocaleString(), 30, bottomY, { align: 'right' });
 
             doc.end();
+        }).catch(error => {
+            console.error('PDF Generation Error:', error);
+            throw error;
         });
     }
 
@@ -459,7 +462,7 @@ export class ReportsService {
             .reduce((sum, t) => sum + t.amount, 0);
 
         const categoryBreakdown = transactions.reduce((acc, t) => {
-            const categoryName = t.category.name;
+            const categoryName = t.category?.name || 'Uncategorized';
             const key = `${categoryName}-${t.type}`;
             if (!acc[key]) {
                 acc[key] = {
@@ -473,8 +476,6 @@ export class ReportsService {
             acc[key].count += 1;
             return acc;
         }, {});
-
-        console.log('Category Breakdown:', JSON.stringify(categoryBreakdown, null, 2));
 
         return {
             totalIncome,
