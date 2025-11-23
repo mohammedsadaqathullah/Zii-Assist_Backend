@@ -25,7 +25,7 @@ export class ReportsService {
                     lte: endDate,
                 },
             },
-            include: { category: true },
+            include: { voucher: true },
         });
 
         return this.aggregateTransactions(transactions);
@@ -45,7 +45,7 @@ export class ReportsService {
                     lt: end,
                 },
             },
-            include: { category: true },
+            include: { voucher: true },
         });
 
         return this.aggregateTransactions(transactions);
@@ -63,7 +63,7 @@ export class ReportsService {
                     lte: endDate,
                 },
             },
-            include: { category: true },
+            include: { voucher: true },
         });
 
         return this.aggregateTransactions(transactions);
@@ -89,7 +89,7 @@ export class ReportsService {
                     lte: end,
                 },
             },
-            include: { category: true },
+            include: { voucher: true },
         });
 
         return this.aggregateTransactions(transactions);
@@ -100,15 +100,15 @@ export class ReportsService {
         startDate: string,
         endDate: string,
         timezoneOffset: number = 0,
-        type: 'transactions' | 'categories' = 'transactions'
+        type: 'transactions' | 'vouchers' = 'transactions'
     ): Promise<Buffer> {
         const report = await this.getCustomReport(userId, startDate, endDate);
         const user = await this.prisma.user.findUnique({ where: { id: userId } });
         const PDFDocument = require('pdfkit');
 
-        // Sort transactions by Category Name ascending
+        // Sort transactions by Voucher Name ascending
         if (report.transactions) {
-            report.transactions.sort((a: any, b: any) => a.category.name.localeCompare(b.category.name));
+            report.transactions.sort((a: any, b: any) => a.voucher.name.localeCompare(b.voucher.name));
         }
 
         return new Promise<Buffer>((resolve, reject) => {
@@ -212,7 +212,7 @@ export class ReportsService {
                     sno: 30,
                     date: 65,
                     time: 135,
-                    category: 205,
+                    voucher: 205,
                     note: 305,
                     amount: 485
                 };
@@ -220,7 +220,7 @@ export class ReportsService {
                     sno: 35,
                     date: 70,
                     time: 70,
-                    category: 100,
+                    voucher: 100,
                     note: 180,
                     amount: 95
                 };
@@ -238,7 +238,7 @@ export class ReportsService {
                     doc.text('S.NO', colX.sno + padding, y + 10);
                     doc.text('DATE', colX.date + padding, y + 10);
                     doc.text('TIME', colX.time + padding, y + 10);
-                    doc.text('CATEGORY', colX.category + padding, y + 10);
+                    doc.text('VOUCHER', colX.voucher + padding, y + 10);
                     doc.text('NOTES', colX.note + padding, y + 10);
                     doc.text('AMOUNT', colX.amount + padding, y + 10);
 
@@ -291,7 +291,7 @@ export class ReportsService {
                     doc.fillColor(secondaryColor).text((index + 1).toString(), colX.sno + padding, textY);
                     doc.text(date, colX.date + padding, textY, { width: colWidth.date - (padding * 2) });
                     doc.text(time, colX.time + padding, textY, { width: colWidth.time - (padding * 2) });
-                    doc.fillColor(primaryColor).text(t.category?.name || 'Uncategorized', colX.category + padding, textY, { width: colWidth.category - (padding * 2) });
+                    doc.fillColor(primaryColor).text(t.voucher?.name || 'Uncategorized', colX.voucher + padding, textY, { width: colWidth.voucher - (padding * 2) });
                     doc.fillColor(secondaryColor).text(note, colX.note + padding, textY, { width: colWidth.note - (padding * 2) });
                     doc.font('Helvetica-Bold').fillColor(color).text(`${typeSymbol}${amount}`, colX.amount + padding, textY);
                     doc.font('Helvetica'); // Reset font
@@ -303,10 +303,10 @@ export class ReportsService {
                 doc.moveTo(30, y).lineTo(580, y).strokeColor(borderColor).stroke();
 
             } else {
-                // Table Configuration for Categories
+                // Table Configuration for Vouchers
                 const colX = {
                     sno: 30,
-                    category: 80,
+                    voucher: 80,
                     type: 230,
                     count: 330,
                     amount: 430
@@ -321,7 +321,7 @@ export class ReportsService {
                         .fillColor(primaryColor);
 
                     doc.text('S.NO', colX.sno + padding, y + 10);
-                    doc.text('CATEGORY NAME', colX.category + padding, y + 10);
+                    doc.text('VOUCHER NAME', colX.voucher + padding, y + 10);
                     doc.text('TYPE', colX.type + padding, y + 10);
                     doc.text('TRANSACTIONS', colX.count + padding, y + 10);
                     doc.text('TOTAL AMOUNT', colX.amount + padding, y + 10);
@@ -333,10 +333,10 @@ export class ReportsService {
                 let y = tableTop + 30;
                 doc.font('Helvetica').fontSize(9);
 
-                const categories = Object.values(report.categoryBreakdown)
+                const vouchers = Object.values(report.voucherBreakdown)
                     .sort((a: any, b: any) => a.name.localeCompare(b.name));
 
-                categories.forEach((cat: any, index: number) => {
+                vouchers.forEach((cat: any, index: number) => {
                     const amount = `$${cat.total.toFixed(2)}`;
                     const color = cat.type === 'INCOME' ? '#27ae60' : '#c0392b';
                     const rowHeight = 35;
@@ -366,7 +366,7 @@ export class ReportsService {
 
                     const textY = y + 10;
                     doc.fillColor(secondaryColor).text((index + 1).toString(), colX.sno + padding, textY);
-                    doc.fillColor(primaryColor).text(cat.name, colX.category + padding, textY);
+                    doc.fillColor(primaryColor).text(cat.name, colX.voucher + padding, textY);
 
                     const typeColor = cat.type === 'INCOME' ? '#27ae60' : '#c0392b';
                     const typeLabel = cat.type === 'INCOME' ? 'Income' : 'Expense';
@@ -462,12 +462,12 @@ export class ReportsService {
             .filter((t) => t.type === 'EXPENSE')
             .reduce((sum, t) => sum + t.amount, 0);
 
-        const categoryBreakdown = transactions.reduce((acc, t) => {
-            const categoryName = t.category?.name || 'Uncategorized';
-            const key = `${categoryName}-${t.type}`;
+        const voucherBreakdown = transactions.reduce((acc, t) => {
+            const voucherName = t.voucher?.name || 'Uncategorized';
+            const key = `${voucherName}-${t.type}`;
             if (!acc[key]) {
                 acc[key] = {
-                    name: categoryName,
+                    name: voucherName,
                     total: 0,
                     count: 0,
                     type: t.type
@@ -482,7 +482,7 @@ export class ReportsService {
             totalIncome,
             totalExpense,
             balance: totalIncome - totalExpense,
-            categoryBreakdown,
+            voucherBreakdown,
             transactions,
         };
     }

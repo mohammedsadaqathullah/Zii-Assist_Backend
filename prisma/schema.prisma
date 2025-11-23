@@ -17,10 +17,10 @@ model User {
   updatedAt DateTime @updatedAt
 
   transactions Transaction[]
-  categories   Category[]
+  vouchers     Voucher[]
 }
 
-model Category {
+model Voucher {
   id     Int            @id @default(autoincrement())
   name   String
   type   TransactionType
@@ -39,8 +39,8 @@ model Transaction {
   note       String?
   userId     Int
   user       User            @relation(fields: [userId], references: [id], onDelete: Cascade)
-  categoryId Int
-  category   Category        @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  voucherId  Int
+  voucher    Voucher         @relation(fields: [voucherId], references: [id], onDelete: Cascade)
   createdAt  DateTime        @default(now())
   updatedAt  DateTime        @updatedAt
 }

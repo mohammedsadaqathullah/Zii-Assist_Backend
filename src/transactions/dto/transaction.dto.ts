@@ -23,10 +23,10 @@ export class CreateTransactionDto {
   @IsOptional()
   note?: string;
 
-  @ApiProperty({ example: 1, description: 'The ID of the category' })
+  @ApiProperty({ example: 1, description: 'The ID of the voucher' })
   @IsNumber()
   @IsNotEmpty()
-  categoryId: number;
+  voucherId: number;
 }
 
 export class EditTransactionDto {
@@ -50,8 +50,8 @@ export class EditTransactionDto {
   @IsOptional()
   note?: string;
 
-  @ApiPropertyOptional({ example: 1, description: 'The ID of the category' })
+  @ApiPropertyOptional({ example: 1, description: 'The ID of the voucher' })
   @IsNumber()
   @IsOptional()
-  categoryId?: number;
+  voucherId?: number;
 }

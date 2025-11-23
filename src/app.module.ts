@@ -6,7 +6,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { AuthModule } from './auth/auth.module';
 import { UsersModule } from './users/users.module';
 import { TransactionsModule } from './transactions/transactions.module';
-import { CategoriesModule } from './categories/categories.module';
+import { VouchersModule } from './vouchers/vouchers.module';
 import { ReportsModule } from './reports/reports.module';
 
 @Module({
@@ -18,7 +18,7 @@ import { ReportsModule } from './reports/reports.module';
     AuthModule,
     UsersModule,
     TransactionsModule,
-    CategoriesModule,
+    VouchersModule,
     ReportsModule,
   ],
   controllers: [AppController],

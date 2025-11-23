@@ -28,7 +28,7 @@ export class TransactionsService {
             this.prisma.transaction.count({ where }),
             this.prisma.transaction.findMany({
                 where,
-                include: { category: true },
+                include: { voucher: true },
                 orderBy: { date: 'desc' },
                 skip,
                 take: limit,
@@ -53,7 +53,7 @@ export class TransactionsService {
     async getTransactionById(userId: number, transactionId: number) {
         return this.prisma.transaction.findFirst({
             where: { id: transactionId, userId },
-            include: { category: true },
+            include: { voucher: true },
         });
     }
 
