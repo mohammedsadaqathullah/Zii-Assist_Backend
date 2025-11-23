@@ -111,7 +111,7 @@ export class ReportsService {
             report.transactions.sort((a: any, b: any) => a.category.name.localeCompare(b.category.name));
         }
 
-        return new Promise((resolve) => {
+        return new Promise<Buffer>((resolve, reject) => {
             const doc = new PDFDocument({ margin: 30 });
             const buffers: any[] = [];
 
@@ -119,6 +119,10 @@ export class ReportsService {
             doc.on('end', () => {
                 const pdfData = Buffer.concat(buffers);
                 resolve(pdfData);
+            });
+
+            doc.on('error', (err: any) => {
+                reject(err);
             });
 
             // Helper to format date with timezone adjustment
@@ -287,7 +291,7 @@ export class ReportsService {
                     doc.fillColor(secondaryColor).text((index + 1).toString(), colX.sno + padding, textY);
                     doc.text(date, colX.date + padding, textY, { width: colWidth.date - (padding * 2) });
                     doc.text(time, colX.time + padding, textY, { width: colWidth.time - (padding * 2) });
-                    doc.fillColor(primaryColor).text(t.category.name, colX.category + padding, textY, { width: colWidth.category - (padding * 2) });
+                    doc.fillColor(primaryColor).text(t.category?.name || 'Uncategorized', colX.category + padding, textY, { width: colWidth.category - (padding * 2) });
                     doc.fillColor(secondaryColor).text(note, colX.note + padding, textY, { width: colWidth.note - (padding * 2) });
                     doc.font('Helvetica-Bold').fillColor(color).text(`${typeSymbol}${amount}`, colX.amount + padding, textY);
                     doc.font('Helvetica'); // Reset font
@@ -446,9 +450,6 @@ export class ReportsService {
                 .text(new Date().toLocaleString(), 30, bottomY, { align: 'right' });
 
             doc.end();
-        }).catch(error => {
-            console.error('PDF Generation Error:', error);
-            throw error;
         });
     }
 
