@@ -329,10 +329,8 @@ export class ReportsService {
                 let y = tableTop + 30;
                 doc.font('Helvetica').fontSize(9);
 
-                const categories = Object.entries(report.categoryBreakdown).map(([name, data]: [string, any]) => ({
-                    name,
-                    ...data
-                })).sort((a: any, b: any) => a.name.localeCompare(b.name));
+                const categories = Object.values(report.categoryBreakdown)
+                    .sort((a: any, b: any) => a.name.localeCompare(b.name));
 
                 categories.forEach((cat: any, index: number) => {
                     const amount = `$${cat.total.toFixed(2)}`;
@@ -462,13 +460,21 @@ export class ReportsService {
 
         const categoryBreakdown = transactions.reduce((acc, t) => {
             const categoryName = t.category.name;
-            if (!acc[categoryName]) {
-                acc[categoryName] = { total: 0, count: 0, type: t.type };
+            const key = `${categoryName}-${t.type}`;
+            if (!acc[key]) {
+                acc[key] = {
+                    name: categoryName,
+                    total: 0,
+                    count: 0,
+                    type: t.type
+                };
             }
-            acc[categoryName].total += t.amount;
-            acc[categoryName].count += 1;
+            acc[key].total += t.amount;
+            acc[key].count += 1;
             return acc;
         }, {});
+
+        console.log('Category Breakdown:', JSON.stringify(categoryBreakdown, null, 2));
 
         return {
             totalIncome,
