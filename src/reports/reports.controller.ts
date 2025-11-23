@@ -51,7 +51,7 @@ export class ReportsController {
         @Query('endDate') endDate: string,
 
         @Query('timezone') timezone: string,
-        @Query('type') type: 'transactions' | 'categories' = 'transactions',
+        @Query('type') type: 'transactions' | 'vouchers' = 'transactions',
         @Res() res: Response,
     ) {
         const buffer = await this.reportsService.generateReportPdf(userId, startDate, endDate, timezone ? parseInt(timezone) : 0, type);
